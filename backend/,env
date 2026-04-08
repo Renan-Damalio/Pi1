@@ -1,0 +1,4 @@
+DB_USER=renan
+DB_PASSWORD=
+DB_NAME=prontuario_escolar
+DB_SOCKET=/home/renan/mysql-data/mysql.sock
