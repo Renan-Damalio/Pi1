@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <title>Sistema Escolar - Cadastrar Usuário</title>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="d-flex" id="wrapper">
+    <div class="bg-white border-end card-estilizado-lateral" id="sidebar-wrapper">
+      <div class="sidebar-heading text-center py-4 fw-bold text-primary border-bottom">
+        MENU
+      </div>
+      <div class="list-group list-group-flush d-flex flex-column h-100">
+        <a href="dashboard.html" class="list-group-item">Dashboard</a>
+                <a href="listaUsuarios.html" class="list-group-item">Usuários</a>                
+                <a href="listaAluno.html" class="list-group-item">Alunos</a>               
+                <a href="chatAluno.html" class="list-group-item">Mensagens/Chat</a>
+                <a href="registrarEventosOcorrencias.html" class="list-group-item border-bottom">Ocorrências</a>
+
+        <a href="index.html" class="list-group-item text-danger fw-bold mt-auto mb-4">
+          Sair
+        </a>
+      </div>
+    </div>
+
+    <div id="page-content-wrapper">
+      <nav class="navbar navbar-expand-lg navbar-light bg-transparent py-4 px-4">
+        <div class="d-flex align-items-center">
+          <h2 class="fs-2 m-0">Cadastrar Usuário</h2>
+        </div>
+      </nav>
+
+      <div class="container-fluid px-4">
+        <section class="card shadow-sm p-4 card-estilizado mx-auto" style="max-width: 600px;">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nome do Usuário</label>
+            <input type="text" id="usuarioNome" class="form-control" placeholder="Nome Completo">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">E-mail</label>
+            <input type="text" id="usuarioEmail" class="form-control" placeholder="email@exemplo.com">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Senha</label>
+            <input type="password" id="usuarioSenha" class="form-control" placeholder="Senha">
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-bold">Tipo</label>
+            <select id="usuarioTipo" class="form-select">
+              <option>admin</option>
+              <option>professor</option>
+              <option>responsável</option>
+            </select>
+          </div>
+
+          <div class="text-center">
+            <button onclick="cadastrarUsuario()" class="btn btn-primary btn-pt btn-acao btn-acao:active">
+              Salvar Usuário
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script src="script.js"></script>
+</body>
+
+</html>

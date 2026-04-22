@@ -42,6 +42,20 @@ router.get("/", (req, res) => {
   });
 });
 
+// BUSCAR UM ÚNICO USUÁRIO 
+router.get("/:id", (req, res) => {
+  const { id } = req.params;
+  db.query("SELECT id, nome, email, tipo FROM usuarios WHERE id = ?", [id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    
+    if (result.length > 0) {
+      res.json(result[0]); 
+    } else {
+      res.status(404).json({ message: "Usuário não encontrado" });
+    }
+  });
+});
+
 router.put("/:id", (req, res) => {
   const { nome, email, tipo } = req.body;
 
@@ -54,6 +68,8 @@ router.put("/:id", (req, res) => {
     }
   );
 });
+
+
 
 router.delete("/:id", (req, res) => {
   db.query("DELETE FROM usuarios WHERE id=?", [req.params.id], (err) => {
