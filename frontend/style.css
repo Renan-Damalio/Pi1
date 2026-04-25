@@ -534,3 +534,53 @@ h1 {
     padding: 15px 20px !important;
     border: none !important;
 }
+
+
+
+.historico-page {
+  background:#f2f5f9;
+}
+
+/* topo */
+.historico-page .topbar{
+  background:#3d7edb;
+  color:white;
+  padding:15px;
+  font-size:22px;
+  font-weight:bold;
+  text-align:center;
+}
+
+/* container */
+.historico-page .container{
+  max-width:700px;
+  margin:30px auto;
+  padding:20px;
+}
+
+/* card */
+.historico-page .card{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+}
+
+/* tags */
+.historico-page .tag{
+  display:inline-block;
+  padding:8px 14px;
+  border-radius:20px;
+  color:white;
+  font-weight:bold;
+  margin-right:8px;
+}
+
+/* cores */
+.historico-page .agitado{
+  background:#d8a15b;
+}
+
+.historico-page .roxo{
+  background:#6a59d1;
+}
