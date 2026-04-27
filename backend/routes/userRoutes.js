@@ -21,6 +21,7 @@ router.post("/login", (req, res) => {
   );
 });
 
+
 // CRUD USUÁRIOS (ADMIN)
 router.post("/", (req, res) => {
   const { nome, email, senha, tipo } = req.body;
@@ -57,16 +58,27 @@ router.get("/:id", (req, res) => {
 });
 
 router.put("/:id", (req, res) => {
-  const { nome, email, tipo } = req.body;
+  const { nome, email, tipo, senha } = req.body;
 
-  db.query(
-    "UPDATE usuarios SET nome=?, email=?, tipo=? WHERE id=?",
-    [nome, email, tipo, req.params.id],
-    (err) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: "Atualizado" });
-    }
-  );
+  if (senha) {
+    db.query(
+      "UPDATE usuarios SET nome=?, email=?, tipo=?, senha=? WHERE id=?",
+      [nome, email, tipo, senha, req.params.id],
+      (err) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: "Usuário e senha atualizados com sucesso!" });
+      }
+    );
+  } else {
+    db.query(
+      "UPDATE usuarios SET nome=?, email=?, tipo=? WHERE id=?",
+      [nome, email, tipo, req.params.id],
+      (err) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: "Usuário atualizado com sucesso!" });
+      }
+    );
+  }
 });
 
 

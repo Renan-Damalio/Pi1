@@ -462,6 +462,11 @@ h1 {
     color: #dc3545;
 }
 
+.btn-historico {
+  border: 2px solid #35DC35;
+    color: #35DC35;
+}
+
 .btn-editar:hover {
     background-color: #0d6efd;
     color: white;
@@ -469,6 +474,11 @@ h1 {
 
 .btn-excluir:hover {
     background-color: #dc3545;
+    color: white;
+}
+
+.btn-historico:hover {
+    background-color: #35DC35;
     color: white;
 }
 
@@ -509,6 +519,10 @@ h1 {
     color: #dc3545 !important;
 }
 
+.text-green{  
+  color: #35dc35 !important;
+}
+
 .sidebar-heading {
     border-bottom: 1px solid #eee;
     letter-spacing: 1px;
@@ -533,4 +547,52 @@ h1 {
     color: #333 !important;
     padding: 15px 20px !important;
     border: none !important;
+}
+
+.historico-page {
+  background:#f2f5f9;
+}
+
+/* topo */
+.historico-page .topbar{
+  background:#3d7edb;
+  color:white;
+  padding:15px;
+  font-size:22px;
+  font-weight:bold;
+  text-align:center;
+}
+
+/* container */
+.historico-page .container{
+  max-width:700px;
+  margin:30px auto;
+  padding:20px;
+}
+
+/* card */
+.historico-page .card{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 3px 8px rgba(0,0,0,0.15);
+}
+
+/* tags */
+.historico-page .tag{
+  display:inline-block;
+  padding:8px 14px;
+  border-radius:20px;
+  color:white;
+  font-weight:bold;
+  margin-right:8px;
+}
+
+/* cores */
+.historico-page .agitado{
+  background:#d8a15b;
+}
+
+.historico-page .roxo{
+  background:#6a59d1;
 }
