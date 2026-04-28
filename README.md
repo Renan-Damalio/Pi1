@@ -220,6 +220,12 @@ http://localhost:5500 (Frontend)
 
 ## 🗄️ Banco de Dados
 
+1. Abra o painel de controle do XAMPP.
+
+2. Na linha do Apache, clique no botão Start.
+
+3 . Na linha do MySQL, clique no botão Start. (Isso garante que o seu servidor local e o banco de dados estejam rodando para receber as informações).
+
 ### Criar banco:
 
 ```sql
@@ -228,6 +234,66 @@ USE prontuario_escolar;
 ```
 
 ---
+
+### Criar tabelas
+
+-- Tabela de Usuários
+```sql
+CREATE TABLE usuarios (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    senha VARCHAR(100) NOT NULL
+);
+```
+
+-- Tabela de Alunos
+```sql
+CREATE TABLE alunos (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    data_nascimento DATE NOT NULL,
+    turma VARCHAR(50) NOT NULL,
+    responsavel VARCHAR(100) NOT NULL,
+    responsavel_id INT(11) NOT NULL
+);
+```
+
+-- Tabela de Mensagens (Chat)
+```sql
+CREATE TABLE mensagens (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    remetente_id INT(11) NOT NULL,
+    mensagem VARCHAR(1000) NOT NULL,
+    aluno_id INT(11) NOT NULL,
+    FOREIGN KEY (aluno_id) REFERENCES alunos(id)
+);
+```
+
+-- Tabela de Ocorrências
+```sql
+CREATE TABLE ocorrencias (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(1000) NOT NULL,
+    data_ocorrencia DATE NOT NULL,
+    aluno_id INT(11) NOT NULL,
+    aluno VARCHAR(50) NOT NULL,
+    FOREIGN KEY (aluno_id) REFERENCES alunos(id)
+);
+```
+
+-- Tabela de Rotinas
+```sql
+CREATE TABLE rotinas (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(1000) NOT NULL,
+    data_registro DATE NOT NULL,
+    aluno_id INT(11) NOT NULL,
+    aluno VARCHAR(50) NOT NULL,
+    FOREIGN KEY (aluno_id) REFERENCES alunos(id)
+);
+```
 
 ### Inserir dados iniciais:
 
