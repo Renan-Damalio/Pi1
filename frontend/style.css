@@ -597,3 +597,8 @@ h1 {
 .historico-page .roxo{
   background:#6a59d1;
 }
+
+/* Acessibilidade - Aumento de Fonte */
+html.fonte-ampliada {
+  font-size: 115% !important;  
+}

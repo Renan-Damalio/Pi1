@@ -9,6 +9,7 @@ const alunoRoutes = require("./routes/alunoRoutes");
 const ocorrenciaRoutes = require("./routes/ocorrenciaRoutes");
 const rotinaRoutes = require("./routes/rotinaRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const avisoRoutes = require("./routes/avisoRoutes");
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use("/api/alunos", alunoRoutes);
 app.use("/api/ocorrencias", ocorrenciaRoutes);
 app.use("/api/rotinas", rotinaRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/avisos", avisoRoutes);
 
 app.get("/", (req, res) => {
   res.send("API funcionando 🚀");

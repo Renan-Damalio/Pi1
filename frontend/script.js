@@ -39,7 +39,9 @@ function verificarAcessoAdmin() {
     const paginasBloqueadasResponsavel = [
         "listaalunos",
         "cadastraraluno",
-        "editaraluno"
+        "editaraluno",
+        "cadastraraviso",
+        "registrareventos"
     ];
 
     const bloqueioAdmin = paginasExclusivasAdmin.some(pagina => urlAtual.includes(pagina));
@@ -724,10 +726,152 @@ function carregarHistoricoCompleto() {
         .catch(err => console.error("Erro ao buscar Chat:", err));
 }
 
+// Avisos da semana
+function carregarAvisos() {
+    fetch("http://localhost:3000/api/avisos")
+        .then(res => res.json())
+        .then(data => {
+            const lista = document.getElementById("listaAvisos");
+            if (!lista) return;
+
+            lista.innerHTML = ""; // Limpa a tabela antes de preencher
+
+            data.forEach(aviso => {
+                // 1. Formatar a data para o padrão brasileiro (DD/MM/YYYY)
+                let dataFormatada = "Sem data";
+                if (aviso.data_evento) {
+                    // O timezone 'UTC' evita que a data volte 1 dia por causa do fuso horário
+                    const dataObj = new Date(aviso.data_evento);
+                    dataFormatada = dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                }
+
+                // 2. Escolher a cor da etiqueta (Badge) com base no tipo de aviso
+                let badgeClass = "bg-secondary"; // Cor padrão (cinza)
+                const tipoLower = aviso.tipo.toLowerCase();
+                
+                if (tipoLower.includes("lição") || tipoLower.includes("licao")) badgeClass = "bg-primary"; // Azul
+                else if (tipoLower.includes("trabalho")) badgeClass = "bg-warning text-dark"; // Amarelo
+                else if (tipoLower.includes("feriado")) badgeClass = "bg-danger"; // Vermelho
+                else if (tipoLower.includes("evento") || tipoLower.includes("festa")) badgeClass = "bg-success"; // Verde
+                else if (tipoLower.includes("reunião") || tipoLower.includes("reuniao")) badgeClass = "bg-info text-dark"; // Azul claro
+
+                // 3. Montar a linha da tabela
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td class="align-middle fw-bold text-secondary">${dataFormatada}</td>
+                    <td class="align-middle"><span class="badge ${badgeClass}">${aviso.tipo}</span></td>
+                    <td class="align-middle">
+                        <span class="fw-bold text-dark" style="font-size: 1.1rem;">${aviso.titulo}</span><br>
+                        <span class="text-muted">${aviso.descricao}</span><br>
+                        <small class="text-primary fw-bold" style="font-size: 0.75rem;">Postado por: ${aviso.autor_nome}</small>
+                    </td>
+                    <td class="align-middle fw-bold">${aviso.turma}</td>
+                    <td class="text-center align-middle">
+                        <div class="d-flex justify-content-center">
+                            <button class="btn btn-sm btn-acao btn-excluir" onclick="excluirAviso(${aviso.id}, '${aviso.titulo}')">
+                                Excluir
+                            </button>
+                        </div>
+                    </td>
+                `;
+                lista.appendChild(tr);
+            });
+        })
+        .catch(err => console.error("Erro ao carregar avisos:", err));
+}
+
+// Método que pega os dados do form e salva no banco
+function cadastrarAviso() {
+    const titulo = document.getElementById("avisoTitulo").value;
+    const tipo = document.getElementById("avisoTipo").value;
+    const data_evento = document.getElementById("avisoData").value;
+    const turma = document.getElementById("avisoTurma").value;
+    const descricao = document.getElementById("avisoDescricao").value;
+
+    // Validação para impedir salvamento em branco
+    if (!titulo || !tipo || !data_evento || !turma || !descricao) {
+        alert("Por favor, preencha todos os campos para criar o aviso!");
+        return;
+    }
+
+    // Pega o nome de quem está criando o aviso (Professor ou Admin)
+    const user = JSON.parse(localStorage.getItem("user"));
+    const autor_nome = user ? user.nome : "Sistema";
+
+    fetch("http://localhost:3000/api/avisos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            titulo,
+            descricao,
+            tipo,
+            data_evento,
+            turma,
+            autor_nome
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || "Aviso criado com sucesso!");
+        // Redireciona de volta para a lista após salvar
+        window.location.href = "listaAvisos.html"; 
+    })
+    .catch(err => {
+        console.error("Erro na requisição:", err);
+        alert("Ocorreu um erro ao salvar o aviso.");
+    });
+}
+
+// função de Excluir avisos 
+function excluirAviso(id, titulo) {
+    if (confirm(`Tem certeza que deseja excluir o aviso "${titulo}"?`)) {
+        fetch(`http://localhost:3000/api/avisos/${id}`, {
+            method: "DELETE"
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Erro ao excluir no servidor");
+            return res.json();
+        })
+        .then(data => {
+            alert(data.message || "Aviso excluído com sucesso!");
+            carregarAvisos(); // Atualiza a tabela na mesma hora!
+        })
+        .catch(err => {
+            console.error("Erro:", err);
+            alert("Não foi possível excluir o aviso.");
+        });
+    }
+}
+
+// Função ativada pelo clique do botão
+/**/function alternarTamanhoFonte() {
+  const htmlElement = document.documentElement;
+
+  // Liga ou desliga a classe
+  htmlElement.classList.toggle('fonte-ampliada');
+
+  if (htmlElement.classList.contains('fonte-ampliada')) {
+    localStorage.setItem('fonteAmpliada', 'true');
+  } else {
+    localStorage.setItem('fonteAmpliada', 'false');
+  }
+}
+
+// Função que roda ao abrir a página para checar a preferência
+function carregarPreferenciaFonte() {
+  const fonteAmpliada = localStorage.getItem('fonteAmpliada');
+
+  if (fonteAmpliada === 'true') {
+    document.documentElement.classList.add('fonte-ampliada');
+  }
+}
+
 // Inicializa a lista ao abrir a página
 window.onload = function () {
   verificarAcessoAdmin();
   carregarBoasVindas();
+  carregarPreferenciaFonte();
+
 
   if (document.getElementById("listaUsuarios")) {
     carregarUsuarios();
@@ -753,4 +897,7 @@ window.onload = function () {
   if (document.getElementById("histNomeAluno")) {
         carregarHistoricoCompleto();
     }
+  if (document.getElementById("listaAvisos")) {
+    carregarAvisos();
+  }
 };
