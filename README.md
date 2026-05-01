@@ -307,6 +307,18 @@ INSERT INTO alunos (nome,data_nascimento,turma) VALUES
 ('Aluno Teste','2020-01-01','Berçário 2');
 ```
 
+-- Tabela de Avisos
+```sql
+CREATE TABLE avisos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(100) NOT NULL,
+    descricao VARCHAR(1000) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    data_evento DATE NOT NULL,
+    turma VARCHAR(50) NOT NULL,
+    autor_nome VARCHAR(100) NOT NULL
+);
+```
 ---
 
 ## 🔐 Login padrão
