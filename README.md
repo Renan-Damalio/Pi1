@@ -295,6 +295,33 @@ CREATE TABLE rotinas (
 );
 ```
 
+-- Tabela de Logs de Auditoria
+```sql
+CREATE TABLE logs_auditoria (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT(11) NOT NULL,
+    acao VARCHAR(100) NOT NULL,
+    registro_afetado VARCHAR(100),
+    detalhes TEXT,
+    ip VARCHAR(50),
+    data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+-- Trigger de Auditoria
+```sql
+DELIMITER //
+CREATE TRIGGER trg_log_alunos_after_insert
+AFTER INSERT ON alunos
+FOR EACH ROW
+BEGIN
+    INSERT INTO logs_auditoria (usuario_id, acao, registro_afetado, detalhes, ip)
+    VALUES (NEW.responsavel_id, 'INSERÇÃO DE ALUNO', CONCAT('Aluno ID: ', NEW.id), CONCAT('Nome: ', NEW.nome), '127.0.0.1');
+END;
+//
+DELIMITER ;
+```
+
 ### Inserir dados iniciais:
 
 ```sql
@@ -318,13 +345,16 @@ Senha: 123
 
 ---
 
-## 📌 Funcionalidades
+## 📌 Funcionalidades (v1.0.2)
 
-* Login de usuários
-* Cadastro de alunos
-* Registro de ocorrências
-* Controle de rotina
-* Sistema de chat
+* Login de usuários com autenticação baseada em tokens
+* Consentimento e aceite explícito prévio dos responsáveis legais antes da coleta de dados de menores
+* Criptografia de dados em trânsito e em repouso (segurança e conformidade LGPD)
+* Validação rigorosa de criação de senhas fortes
+* Sistema de registo de auditoria (logs) de atividades
+* Cadastro de alunos e responsáveis
+* Registro de ocorrências e rotina
+* Sistema de chat integrado
 * Controle de usuários (admin)
 
 ---

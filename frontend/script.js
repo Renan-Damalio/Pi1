@@ -76,6 +76,89 @@ function carregarBoasVindas() {
     }
 }
 
+function toggleVisibilidadeSenha() {
+  const inputSenha = document.getElementById("usuarioSenha");
+  const btnToggle = document.getElementById("btnToggleSenha");
+  if (inputSenha.type === "password") {
+    inputSenha.type = "text";
+    btnToggle.innerText = "🔒";
+  } else {
+    inputSenha.type = "password";
+    btnToggle.innerText = "👁️";
+  }
+}
+
+const SENHAS_COMUNS_FRONT = ["12345678", "123456789", "password", "senha123", "admin123", "123456", "qwertyui", "mudar123", "senha", "abcdefgh"];
+
+function validarForcaSenha() {
+  const senha = document.getElementById("usuarioSenha").value;
+  const btnSalvar = document.getElementById("btnSalvar");
+  const barraForca = document.getElementById("barraForca");
+  const labelForca = document.getElementById("labelForca");
+
+  // Regras
+  const temTamanho = senha.length >= 8;
+  const temMaiuscula = /[A-Z]/.test(senha);
+  const temMinuscula = /[a-z]/.test(senha);
+  const temNumero = /[0-9]/.test(senha);
+  const temEspecial = /[!@#$%^&*(),.?":{}|<>]/.test(senha);
+  const naoComum = !SENHAS_COMUNS_FRONT.includes(senha.toLowerCase());
+
+  // Atualizar Checklist UI
+  atualizarItemChecklist("req-tamanho", temTamanho, "Mínimo de 8 caracteres (12+ ideal)");
+  atualizarItemChecklist("req-maiuscula", temMaiuscula, "Pelo menos 1 letra maiúscula");
+  atualizarItemChecklist("req-minuscula", temMinuscula, "Pelo menos 1 letra minúscula");
+  atualizarItemChecklist("req-numero", temNumero, "Pelo menos 1 número");
+  atualizarItemChecklist("req-especial", temEspecial, "Pelo menos 1 caractere especial (!@#$%^&*)");
+  atualizarItemChecklist("req-comum", naoComum, "Não pode ser senha comum/vazada");
+
+  // Cálculo de Força
+  let pontuacao = 0;
+  if (senha.length >= 12) pontuacao += 2;
+  else if (temTamanho) pontuacao += 1;
+  if (temMaiuscula) pontuacao += 1;
+  if (temMinuscula) pontuacao += 1;
+  if (temNumero) pontuacao += 1;
+  if (temEspecial) pontuacao += 2;
+
+  let percentual = Math.min(100, (pontuacao / 7) * 100);
+  barraForca.style.width = percentual + "%";
+
+  if (percentual < 40) {
+    barraForca.className = "progress-bar bg-danger";
+    labelForca.innerText = "Fraca";
+    labelForca.className = "text-danger";
+  } else if (percentual < 80) {
+    barraForca.className = "progress-bar bg-warning";
+    labelForca.innerText = "Média";
+    labelForca.className = "text-warning";
+  } else {
+    barraForca.className = "progress-bar bg-success";
+    labelForca.innerText = "Forte";
+    labelForca.className = "text-success";
+  }
+
+  // Habilitar ou desabilitar botão de envio
+  const valido = temTamanho && temMaiuscula && temMinuscula && temNumero && temEspecial && naoComum;
+  if (valido) {
+    btnSalvar.removeAttribute("disabled");
+  } else {
+    btnSalvar.setAttribute("disabled", "true");
+  }
+}
+
+function atualizarItemChecklist(elementId, condicao, texto) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  if (condicao) {
+    el.innerHTML = `✅ ${texto}`;
+    el.className = "text-success fw-bold";
+  } else {
+    el.innerHTML = `❌ ${texto}`;
+    el.className = "text-danger";
+  }
+}
+
 // Cadastro de usuarios
 function cadastrarUsuario() {
   const nome = document.getElementById("usuarioNome").value
@@ -98,12 +181,23 @@ function cadastrarUsuario() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nome, email, senha, tipo })
   })
-    .then(res => res.json())
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Erro ao cadastrar usuário");
+      }
+      return data;
+    })
     .then(data => {
       alert(data.message);
       document.getElementById("usuarioNome").value = "";
       document.getElementById("usuarioEmail").value = "";
       document.getElementById("usuarioSenha").value = "";
+      document.getElementById("btnSalvar").setAttribute("disabled", "true");
+      validarForcaSenha();
+    })
+    .catch(err => {
+      alert("Erro: " + err.message);
     })
 }
 
@@ -115,11 +209,17 @@ function cadastrarAluno() {
   const turma = document.getElementById("alunoTurma").value;
 
   const selectResponsavel = document.getElementById("alunoResponsavel");
-
   const responsavel_id = selectResponsavel.value;
+  const consentimentoCheckbox = document.getElementById("alunoConsentimento");
+  const consentimento_parental = consentimentoCheckbox ? consentimentoCheckbox.checked : false;
 
   if (!nome || !data_nascimento || !turma || !responsavel_id) {
     alert("Erro: Todos os campos do aluno são obrigatórios!");
+    return;
+  }
+
+  if (!consentimento_parental) {
+    alert("Erro LGPD: É obrigatório obter o consentimento explícito do responsável legal antes de coletar os dados da criança!");
     return;
   }
 
@@ -133,7 +233,8 @@ function cadastrarAluno() {
       data_nascimento,
       turma,
       responsavel: responsavel_nome,
-      responsavel_id: responsavel_id
+      responsavel_id: responsavel_id,
+      consentimento_parental: true
     })
   })
     .then(async res => {
@@ -143,7 +244,7 @@ function cadastrarAluno() {
     })
     .then(data => {
       alert(data.message);
-      carregarAlunos();
+      window.location.href = "listaAlunos.html";
     })
     .catch(err => {
       console.error("Erro na requisição:", err);
@@ -273,11 +374,15 @@ function carregarAlunos() {
 
       data.forEach(aluno => {
         if (lista) {
+          const consentimentoBadge = aluno.consentimento_parental 
+            ? `<span class="badge bg-success">Consentido (LGPD)</span>` 
+            : `<span class="badge bg-warning text-dark">Pendente</span>`;
           const tr = document.createElement("tr");
           tr.innerHTML = `
         <td class="align-middle">${aluno.nome}</td>
         <td class="align-middle">${aluno.turma}</td>
         <td class="align-middle">${aluno.responsavel}</td>
+        <td class="align-middle text-center">${consentimentoBadge}</td>
         <td class="text-center">
             <div class="d-flex justify-content-center">
                 <button class="btn btn-sm btn-acao btn-editar me-2" 
@@ -866,11 +971,95 @@ function carregarPreferenciaFonte() {
   }
 }
 
+// Verificação e exibição do Termo de Consentimento Parental (LGPD) para Responsáveis
+function verificarConsentimentoLGPD() {
+  const userStr = localStorage.getItem("user");
+  if (!userStr) return;
+
+  const user = JSON.parse(userStr);
+  const tipo = (user.tipo || "").toLowerCase();
+  const isResponsavel = tipo === "responsável" || tipo === "responsavel";
+
+  if (isResponsavel && !user.consentimento_lgpd) {
+    if (document.getElementById("modalLGPDOverlay")) return;
+
+    const overlay = document.createElement("div");
+    overlay.id = "modalLGPDOverlay";
+    overlay.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;";
+
+    overlay.innerHTML = `
+      <div class="card shadow-lg border-0 p-4 p-md-5" style="max-width: 600px; width: 100%; border-radius: 12px; background-color: #ffffff;">
+        <div class="text-center mb-3">
+          <div style="font-size: 2.5rem;">🔒</div>
+          <h4 class="fw-bold text-primary mt-2">Termo de Consentimento Parental - LGPD</h4>
+          <p class="text-muted small">Lei Geral de Proteção de Dados (Lei nº 13.709/2018)</p>
+        </div>
+
+        <div class="mb-3 text-secondary" style="font-size: 0.95rem; line-height: 1.5; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+          <p>
+            Em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018)</strong>, a coleta, armazenamento e tratamento de dados pessoais de crianças e estudantes pelo Prontuário Escolar exigem o <strong>consentimento explícito e inequívoco dos pais ou responsáveis legais</strong> antes da coleta de qualquer dado.
+          </p>
+          <p>
+            Ao prosseguir e aceitar estes termos, você autoriza formalmente a instituição e o sistema a registrar, processar e exibir informações educacionais, rotinas, ocorrências e comunicações relativas ao seu dependente.
+          </p>
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" id="checkConsentimentoLGPD" onchange="toggleBotaoConsentimento()">
+          <label class="form-check-input-label fw-bold texto-pequeno text-dark" for="checkConsentimentoLGPD" style="cursor: pointer; font-size: 0.9rem;">
+            Li e concordo com os termos de consentimento parental e autorizo o tratamento de dados do meu dependente conforme a LGPD.
+          </label>
+        </div>
+
+        <button id="btnAceitarLGPD" onclick="aceitarConsentimentoLGPD(${user.id})" class="btn btn-primary w-100 fw-bold py-2" style="border-radius: 8px;" disabled>
+          Aceitar e Continuar
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+  }
+}
+
+function toggleBotaoConsentimento() {
+  const checkbox = document.getElementById("checkConsentimentoLGPD");
+  const btn = document.getElementById("btnAceitarLGPD");
+  if (checkbox && btn) {
+    btn.disabled = !checkbox.checked;
+  }
+}
+
+function aceitarConsentimentoLGPD(userId) {
+  fetch(`http://localhost:3000/api/users/${userId}/consentimento`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" }
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Erro ao registrar consentimento no servidor");
+      return res.json();
+    })
+    .then(data => {
+      const user = JSON.parse(localStorage.getItem("user"));
+      user.consentimento_lgpd = 1;
+      localStorage.setItem("user", JSON.stringify(user));
+
+      const overlay = document.getElementById("modalLGPDOverlay");
+      if (overlay) overlay.remove();
+
+      alert(data.message || "Consentimento registrado com sucesso!");
+    })
+    .catch(err => {
+      console.error("Erro:", err);
+      alert("Erro ao registrar consentimento. Tente novamente.");
+    });
+}
+
 // Inicializa a lista ao abrir a página
 window.onload = function () {
   verificarAcessoAdmin();
   carregarBoasVindas();
   carregarPreferenciaFonte();
+  verificarConsentimentoLGPD();
 
 
   if (document.getElementById("listaUsuarios")) {
