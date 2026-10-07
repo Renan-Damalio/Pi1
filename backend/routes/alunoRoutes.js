@@ -3,23 +3,25 @@ const router = express.Router();
 const db = require("../config/db");
 
 router.post("/", (req, res) => {
-  const { nome, data_nascimento, turma, responsavel, responsavel_id } = req.body;
+  const { nome, data_nascimento, turma, responsavel, responsavel_id, consentimento_parental } = req.body;
 
-  // Log para você ver no terminal do VSCode o que está chegando
-  console.log("Recebido do frontend:", { nome, data_nascimento, turma, responsavel, responsavel_id });
+  console.log("Recebido do frontend:", { nome, data_nascimento, turma, responsavel, responsavel_id, consentimento_parental });
+
+  if (!consentimento_parental) {
+    return res.status(400).json({ 
+      message: "Consentimento parental explícito é obrigatório para a coleta de dados da criança (LGPD)." 
+    });
+  }
 
   db.query(
-    "INSERT INTO alunos (nome, data_nascimento, turma, responsavel, responsavel_id) VALUES (?,?,?,?,?)",
+    "INSERT INTO alunos (nome, data_nascimento, turma, responsavel, responsavel_id, consentimento_parental, data_consentimento) VALUES (?,?,?,?,?, 1, NOW())",
     [nome, data_nascimento, turma, responsavel, responsavel_id],
     (err) => {
       if (err) {
-        // Isso vai imprimir o erro EXATO no terminal onde o servidor está rodando
         console.error("Erro do MySQL:", err); 
-        
-        // Devolvemos a mensagem de erro formatada para o navegador
         return res.status(500).json({ message: "Erro no banco: " + err.message });
       }
-      res.json({ message: "Aluno criado com sucesso!" });
+      res.json({ message: "Aluno criado com sucesso com consentimento parental registrado!" });
     }
   );
 });
@@ -49,16 +51,22 @@ router.get("/:id", (req, res) => {
 });
 
 router.put("/:id", (req, res) => {
-  const { nome, data_nascimento, turma, responsavel, responsavel_id } = req.body;
+  const { nome, data_nascimento, turma, responsavel, responsavel_id, consentimento_parental } = req.body;
 
-  db.query(
-    "UPDATE alunos SET nome=?,data_nascimento=?,turma=?, responsavel=?, responsavel_id=? WHERE id=?",
-    [nome, data_nascimento, turma, responsavel, responsavel_id, req.params.id],
-    (err) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: "Atualizado" });
-    }
-  );
+  let query = "UPDATE alunos SET nome=?, data_nascimento=?, turma=?, responsavel=?, responsavel_id=?";
+  let params = [nome, data_nascimento, turma, responsavel, responsavel_id];
+
+  if (consentimento_parental) {
+    query += ", consentimento_parental=1, data_consentimento=COALESCE(data_consentimento, NOW())";
+  }
+
+  query += " WHERE id=?";
+  params.push(req.params.id);
+
+  db.query(query, params, (err) => {
+    if (err) return res.status(500).json(err);
+    res.json({ message: "Atualizado com sucesso!" });
+  });
 });
 
 router.delete("/:id", (req, res) => {
